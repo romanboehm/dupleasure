@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>dupleasure PDF reordering</title>
+    </head>
+    <body>
+        <h1>dupleasure PDF reordering</h1>
+        <input type="file" id="pdfFile" accept=".pdf" required />
+        <button onclick="reorderPdf()">Reorder PDF</button>
+        <div id="result"></div>
+        <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+        <script>
+            async function reorderPdf() {
+                const input = document.getElementById("pdfFile");
+                const resultDiv = document.getElementById("result");
+
+                if (!input.files || input.files.length === 0) {
+                    resultDiv.innerHTML = "<p>Please select a PDF file.</p>";
+                    return;
+                }
+
+                const pdfFile = input.files[0];
+
+                try {
+                    const pdfBytes = await readFileAsArrayBuffer(pdfFile);
+                    const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+
+                    const newDoc = await PDFLib.PDFDocument.create();
+
+                    const pageCount = pdfDoc.getPages().length;
+                    const halfPageCount = Math.ceil(pageCount / 2);
+
+                    for (let i = 0; i < halfPageCount; i++) {
+                        const [firstPage] = await newDoc.copyPages(pdfDoc, [i]);
+                        const [lastPage] = await newDoc.copyPages(pdfDoc, [
+                            pageCount - i - 1,
+                        ]);
+                        newDoc.addPage(firstPage);
+                        if (i !== pageCount - i - 1) {
+                            newDoc.addPage(lastPage);
+                        }
+                    }
+
+                    const reorderedPdfBytes = await newDoc.save();
+
+                    const blob = new Blob([reorderedPdfBytes], {
+                        type: "application/pdf",
+                    });
+                    const downloadLink = document.createElement("a");
+                    downloadLink.href = URL.createObjectURL(blob);
+                    downloadLink.download = "reordered.pdf";
+                    downloadLink.click();
+
+                    resultDiv.innerHTML = "<p>PDF reordered successfully.</p>";
+                } catch (error) {
+                    console.error("Error:", error);
+                    resultDiv.innerHTML =
+                        "<p>Error reordering PDF. Please try again.</p>";
+                }
+            }
+
+            function readFileAsArrayBuffer(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+
+                    reader.onload = (event) => {
+                        resolve(event.target.result);
+                    };
+
+                    reader.onerror = (error) => {
+                        reject(error);
+                    };
+
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+        </script>
+    </body>
+</html>
