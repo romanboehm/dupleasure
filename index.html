@@ -7,6 +7,14 @@
     </head>
     <body>
         <h1>dupleasure PDF reordering</h1>
+        <p>
+            This tool reorders the pages of a PDF file to recreate a duplex-style scanned PDF. It interleaves the first half
+            of the pages with the second half of the pages, simulating the front and back sides of a physical document.
+        </p>
+        <p>For
+            example, if the input PDF has pages 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, the output PDF will have pages 1, 10, 2, 9,
+            3, 8, 4, 7, 5, 6, mimicking the order of a duplex scan.
+        </p>
         <input type="file" id="pdfFile" required />
         <button onclick="reorderPdf()">Reorder PDF</button>
         <div id="result"></div>
