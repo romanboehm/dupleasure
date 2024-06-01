@@ -149,7 +149,7 @@
                 downloadLink.download = keepFileName ? pdfFile.name : `${pdfFile.name.replace(".pdf", "")}-reordered.pdf`;
                 downloadLink.click();
 
-                resultDiv.innerHTML = "<p>PDF reordered successfully.</p>";
+                resultDiv.innerHTML = "<p>🎉 PDF reordered successfully.</p>";
             } catch (error) {
                 console.error("Error:", error);
                 resultDiv.innerHTML =
