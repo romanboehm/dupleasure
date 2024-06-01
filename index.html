@@ -5,6 +5,38 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>dupleasure PDF reordering</title>
+    <style>
+        .drop-zone {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            color: #ccc;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .drop-zone.dragover {
+            border-color: #000;
+            color: #000;
+        }
+
+        .drop-zone.has-file {
+            background-color: aquamarine;
+            color: #000;
+        }
+
+        #file-name {
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #333;
+        }
+
+        #reorder-btn {
+            margin-bottom: 10px;
+            background-color: aquamarine;
+        }
+    </style>
 </head>
 
 <body>
@@ -20,21 +52,64 @@
         PDF you'll get will contain the physical pages in the following order: 1, 3, 5, 2, 4, 6.
         Dupleasure will take this PDF and put the pages in the order you want to read them: 1, 2, 3, 4, 5, 6.
     </p>
-    <input type="file" id="pdfFile" required />
-    <button onclick="reorderPdf()">Reorder PDF</button>
+    <div class="drop-zone" id="drop-zone">Drag and drop your PDF here or click to select a file</div>
+    
+    <input type="file" id="pdf-file" style="display: none;" required/>
+    
+    <p id="file-name"></p>
+    
+    <button id="reorder-btn" onclick="reorderPdf()">Reorder PDF</button>
     <div id="result"></div>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('pdf-file');
+        const fileNameDiv = document.getElementById('file-name');
+
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                fileInput.files = files;
+                displayFileName();
+            }
+        });
+
+        fileInput.addEventListener('change', displayFileName);
+
+        function displayFileName() {
+            if (fileInput.files.length) {
+                dropZone.classList.add('has-file');
+                dropZone.textContent = `Selected file: ${fileInput.files[0].name}`;
+            } else {
+                dropZone.textContent = '';
+            }
+        }
+
         async function reorderPdf() {
-            const input = document.getElementById("pdfFile");
             const resultDiv = document.getElementById("result");
 
-            if (!input.files || input.files.length === 0) {
+            if (!fileInput.files || fileInput.files.length === 0) {
                 resultDiv.innerHTML = "<p>Please select a PDF file.</p>";
                 return;
             }
 
-            const pdfFile = input.files[0];
+            const pdfFile = fileInput.files[0];
 
             try {
                 const pdfBytes = await readFileAsArrayBuffer(pdfFile);
